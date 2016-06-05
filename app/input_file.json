@@ -1,0 +1,18 @@
+{
+  "plugins": [
+    {
+      "plugin_name": "input_file",
+      "plugin_settings": [
+        {
+          "add_field": [
+            {
+              "type": "hash",
+              "required": false,
+              "default_value": "{}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
