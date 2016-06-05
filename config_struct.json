@@ -1,0 +1,18 @@
+{
+	"plugins": [
+		{
+		"plugin_name": "name",
+		"plugin_settings": [
+			{
+				"setting_name": [
+					{
+					"type": "type",
+					"required": "woot",
+					"default_value": "value"
+					}
+				]
+			}
+		]
+		}
+	]
+}
