@@ -1,25 +1,28 @@
 {
-  "plugins": [
-    {
-      "plugin_name": "file",
-      "plugin_settings": [
-        {
-          "setting_name": "add_field",
-          "properties": {
-            "type": "hash",
-            "required": false,
-            "default_value": "{}"
-          }
-        },
-        {
-          "setting_name": "close_older",
-          "properties": {
-            "type": "number",
-            "required": false,
-            "default_value": "3600"
-          }
-        }
-      ]
+  "input": {
+    "stdin": {},
+    "file": {
+      "path": {},
+      "start_position": {}
     }
-  ]
+  },
+  "filter": {
+    "mutate": {
+      "replace": {}
+    },
+    "grok": {
+      "match": {}
+    },
+    "date": {
+      "match": {}
+    }
+  },
+  "output": {
+    "elasticsearch": {
+      "hosts": {}
+    },
+    "stdout": {
+      "codec": {}
+    }
+  }
 }
