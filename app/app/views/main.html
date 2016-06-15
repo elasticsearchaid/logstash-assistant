@@ -1,40 +1,57 @@
 <div class="jumbotron">
-  <button class="btn btn-success" data-ng-click="vm.methods.validateInput()">Validate</button>
   <div class="row">
-    <div class="col-sm-9 no-padding">
-      <textarea data-ng-model="vm.model.text" data-ng-model-options="{debounce: 500}"
-                data-ng-change="vm.methods.intelliSense()"></textarea>
+    <div class="col-sm-4">
+      <h3>Plugins dictionary:
+        <small data-ng-show="vm.methods.isEmpty(vm.model.list)">loading...</small>
+      </h3>
+      <ul class="scrollable-content">
+        <li data-ng-repeat="(pipeline, plugins) in vm.model.list" data-ob-toggle data-no-timeout="true">
+          <span data-ng-bind="pipeline" data-ob-toggle-button></span>
+          <ul data-ob-hidden-section>
+            <li data-ng-repeat="(plugin, settings) in plugins" data-ob-toggle data-no-timeout="true">
+              <span data-ng-bind="plugin" data-ob-toggle-button></span>
+              <ul data-ob-hidden-section>
+                <li data-ng-show="::vm.methods.isEmpty(settings)">
+                  <span>This plugin has no settings</span>
+                </li>
+                <li data-ng-repeat="(setting, props) in settings" data-ob-toggle data-no-timeout="true">
+                  <span data-ng-bind="setting" data-ob-toggle-button></span>
+                  <ul data-ob-hidden-section>
+                    <li>
+                      <span>input type: </span>
+                      <span data-ng-bind="props.input_type"></span>
+                    </li>
+                    <li>
+                      <span>required: </span>
+                      <span data-ng-bind="props.required"></span>
+                    </li>
+                    <li>
+                      <span>default value: </span>
+                      <span data-ng-bind="props.default_value"></span>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+    <div class="col-sm-5 no-padding">
+      <textarea data-ng-model="vm.model.text" data-ng-model-options="{debounce: 100}"
+                data-ng-change="vm.methods.intelliSense()"
+                data-ng-disabled="vm.methods.isEmpty(vm.model.list)"></textarea>
 
       <!--<div class="suggestions" contenteditable data-ng-bind="vm.model.text" data-ng-change="vm.methods.intelliSense()">-->
       <!--<span class="preText" data-ng-bind="vm.model.text"></span>-->
       <!--</div>-->
 
     </div>
-    <div class="col-sm-3" style="background: white">
-      <ul data-ng-show="vm.model.suggestions.length > 0">
+    <div class="col-sm-3">
+      <h3>IntelliSense:</h3>
+      <ul data-ng-show="vm.model.suggestions.length > 0" class="scrollable-content">
         <li data-ng-repeat="suggestion in vm.model.suggestions">
           <span data-ng-bind="suggestion"></span>
-        </li>
-      </ul>
-
-      <ul>
-        <li data-ng-repeat="(pipeline, plugins) in vm.model.matches">
-            <span data-ng-bind="pipeline"
-                  data-ng-class="vm.model.list[pipeline] ? 'valid-input' : 'invalid-input'"></span>
-          <ul>
-            <li data-ng-repeat="(plugin, settings) in plugins">
-            <span data-ng-bind="plugin"
-                  data-ng-class="vm.model.list[pipeline] && vm.model.list[pipeline][plugin]? 'valid-input' : 'invalid-input'"></span>
-              <ul>
-                <li data-ng-repeat="(setting, val) in settings">
-                <span data-ng-bind="setting"
-                      data-ng-class="vm.model.list[pipeline] && vm.model.list[pipeline][plugin] && vm.model.list[pipeline][plugin][setting]? 'valid-input' : 'invalid-input'"></span>
-                  =>
-                  <span data-ng-bind="val"></span>
-                </li>
-              </ul>
-            </li>
-          </ul>
         </li>
       </ul>
     </div>
@@ -43,35 +60,23 @@
 
 <div class="row">
   <div class="col-sm-12">
-    <h1>Plugins dictionary:
-      <small data-ng-show="vm.methods.isEmpty(vm.model.list)">loading...</small>
-    </h1>
+    <button class="btn btn-success" data-ng-click="vm.methods.validateInput()">Validate</button>
+    <span
+      data-ng-show="vm.methods.isEmpty(vm.model.matches)">could not parse text, please check your syntax</span>
     <ul>
-      <li data-ng-repeat="(pipeline, plugins) in vm.model.list" data-ob-toggle data-no-timeout="true">
-        <span data-ng-bind="pipeline" data-ob-toggle-button></span>
-        <ul data-ob-hidden-section>
-          <li data-ng-repeat="(plugin, settings) in plugins" data-ob-toggle data-no-timeout="true">
-            <span data-ng-bind="plugin" data-ob-toggle-button></span>
-            <ul data-ob-hidden-section>
-              <li data-ng-show="::vm.methods.isEmpty(settings)">
-                <span>This plugin has no settings</span>
-              </li>
-              <li data-ng-repeat="(setting, props) in settings" data-ob-toggle data-no-timeout="true">
-                <span data-ng-bind="setting" data-ob-toggle-button></span>
-                <ul data-ob-hidden-section>
-                  <li>
-                    <span>input type: </span>
-                    <span data-ng-bind="props.input_type"></span>
-                  </li>
-                  <li>
-                    <span>required: </span>
-                    <span data-ng-bind="props.required"></span>
-                  </li>
-                  <li>
-                    <span>default value: </span>
-                    <span data-ng-bind="props.default_value"></span>
-                  </li>
-                </ul>
+      <li data-ng-repeat="(pipeline, plugins) in vm.model.matches">
+            <span data-ng-bind="pipeline"
+                  data-ng-class="vm.model.list[pipeline] ? 'valid-input' : 'invalid-input'"></span>
+        <ul>
+          <li data-ng-repeat="(plugin, settings) in plugins">
+            <span data-ng-bind="plugin"
+                  data-ng-class="vm.model.list[pipeline] && vm.model.list[pipeline][plugin]? 'valid-input' : 'invalid-input'"></span>
+            <ul>
+              <li data-ng-repeat="(setting, val) in settings">
+                <span data-ng-bind="setting"
+                      data-ng-class="vm.model.list[pipeline] && vm.model.list[pipeline][plugin] && vm.model.list[pipeline][plugin][setting]? 'valid-input' : 'invalid-input'"></span>
+                =>
+                <span data-ng-bind="val"></span>
               </li>
             </ul>
           </li>
@@ -79,6 +84,4 @@
       </li>
     </ul>
   </div>
-
-
 </div>

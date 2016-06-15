@@ -13,12 +13,12 @@
           var ret = [];
           var links;
           var deferred = $q.defer();
-
+          var path;
           $http.get(url).then(function (res) {
             links = angular.element(res.data).find(link_selector);
-
             for (var i = 0; i < links.length; i++) {
-              ret.push($http.get(urlBase + links[i].pathname));
+              path = links[i].pathname.split('/');
+              ret.push($http.get(urlBase + '/' + path[path.length - 1]));
             }
 
             deferred.resolve(ret);

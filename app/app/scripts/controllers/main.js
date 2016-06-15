@@ -153,7 +153,7 @@ angular.module('logstashAssistantApp')
             }
           }
         }
-        console.log(caret_match, pipeline_regex);
+        //console.log(caret_match, pipeline_regex);
       },
       validateInput: function () {
         var matches = {};
@@ -190,7 +190,7 @@ angular.module('logstashAssistantApp')
                     } else if (single_setting_match[2]) {
                       values = single_setting_match[2];
                     }
-                    console.log(values);
+                    //console.log(values);
                     if (settings_match && settings_match[1] !== null) {
                       plugin_settings[settings_match[1]] = values;
                     }
@@ -211,7 +211,7 @@ angular.module('logstashAssistantApp')
         }
 
         model.matches = matches;
-        console.log(model.matches.size);
+        //console.log(model.matches.size);
       },
       isEmpty: function (obj) {
         return Object.keys(obj).length === 0;
