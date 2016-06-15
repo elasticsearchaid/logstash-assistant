@@ -9,4 +9,4 @@
  * Main module of the application.
  */
 angular
-  .module('logstashAssistantApp', ['obJsonLoader']);
+  .module('logstashAssistantApp', ['obJsonLoader', 'obWebCrawler', 'obToggleModule']);

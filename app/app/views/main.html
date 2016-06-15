@@ -1,10 +1,22 @@
 <div class="jumbotron">
+  <button class="btn btn-success" data-ng-click="vm.methods.validateInput()">Validate</button>
   <div class="row">
-    <div class="col-sm-9">
+    <div class="col-sm-9 no-padding">
       <textarea data-ng-model="vm.model.text" data-ng-model-options="{debounce: 500}"
-                data-ng-change="vm.methods.parseInput()"></textarea>
+                data-ng-change="vm.methods.intelliSense()"></textarea>
+
+      <!--<div class="suggestions" contenteditable data-ng-bind="vm.model.text" data-ng-change="vm.methods.intelliSense()">-->
+      <!--<span class="preText" data-ng-bind="vm.model.text"></span>-->
+      <!--</div>-->
+
     </div>
     <div class="col-sm-3" style="background: white">
+      <ul data-ng-show="vm.model.suggestions.length > 0">
+        <li data-ng-repeat="suggestion in vm.model.suggestions">
+          <span data-ng-bind="suggestion"></span>
+        </li>
+      </ul>
+
       <ul>
         <li data-ng-repeat="(pipeline, plugins) in vm.model.matches">
             <span data-ng-bind="pipeline"
@@ -30,32 +42,43 @@
 </div>
 
 <div class="row">
-  <!--<div class="col-sm-6">-->
-  <!--<ul>-->
-  <!--<li data-ng-repeat="plugin in vm.model.list | filter: vm.model.text">-->
-  <!--<span data-ng-bind="plugin['plugin_name']"></span>-->
-  <!--<ul>-->
-  <!--<li data-ng-repeat="setting in plugin['plugin_settings'] | filter: vm.model.text">-->
-  <!--<span data-ng-bind="setting['setting_name']"></span>-->
-  <!--<ul>-->
-  <!--<li>-->
-  <!--<span>type: </span>-->
-  <!--<span data-ng-bind="setting['properties']['type']"></span>-->
-  <!--</li>-->
-  <!--<li>-->
-  <!--<span>required: </span>-->
-  <!--<span data-ng-bind="setting['properties']['required']"></span>-->
-  <!--</li>-->
-  <!--<li>-->
-  <!--<span>default value: </span>-->
-  <!--<span data-ng-bind="setting['properties']['default_value']"></span>-->
-  <!--</li>-->
-  <!--</ul>-->
-  <!--</li>-->
-  <!--</ul>-->
-  <!--</li>-->
-  <!--</ul>-->
-  <!--</div>-->
+  <div class="col-sm-12">
+    <h1>Plugins dictionary:
+      <small data-ng-show="vm.methods.isEmpty(vm.model.list)">loading...</small>
+    </h1>
+    <ul>
+      <li data-ng-repeat="(pipeline, plugins) in vm.model.list" data-ob-toggle data-no-timeout="true">
+        <span data-ng-bind="pipeline" data-ob-toggle-button></span>
+        <ul data-ob-hidden-section>
+          <li data-ng-repeat="(plugin, settings) in plugins" data-ob-toggle data-no-timeout="true">
+            <span data-ng-bind="plugin" data-ob-toggle-button></span>
+            <ul data-ob-hidden-section>
+              <li data-ng-show="::vm.methods.isEmpty(settings)">
+                <span>This plugin has no settings</span>
+              </li>
+              <li data-ng-repeat="(setting, props) in settings" data-ob-toggle data-no-timeout="true">
+                <span data-ng-bind="setting" data-ob-toggle-button></span>
+                <ul data-ob-hidden-section>
+                  <li>
+                    <span>input type: </span>
+                    <span data-ng-bind="props.input_type"></span>
+                  </li>
+                  <li>
+                    <span>required: </span>
+                    <span data-ng-bind="props.required"></span>
+                  </li>
+                  <li>
+                    <span>default value: </span>
+                    <span data-ng-bind="props.default_value"></span>
+                  </li>
+                </ul>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </li>
+    </ul>
+  </div>
 
 
 </div>

@@ -1,0 +1,21 @@
+[ob-toggle], [data-ob-toggle] {
+  z-index: 1;
+}
+
+[ob-close-button], [ob-toggle-button], [data-ob-close-button], [data-ob-toggle-button] {
+  cursor: pointer;
+  z-index: 2;
+}
+
+[ob-hidden-section], [data-ob-hidden-section] {
+  z-index: 3 !important;
+  display: none;
+}
+
+[ob-hidden-section='true'], [data-ob-hidden-section='true'] {
+  display: block;
+}
+
+[ob-hidden-section='false'], [data-ob-hidden-section='false'] {
+  display: none;
+}
