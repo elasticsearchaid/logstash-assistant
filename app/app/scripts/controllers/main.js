@@ -26,20 +26,24 @@ angular.module('logstashAssistantApp')
       text: "",
       matches: {},
       list: {},
-      suggestions: []
+      suggestions: [],
+      quick_suggestion_index: -1,
+      quick_suggestion_type: '',
+      last_num_of_tabs: 0
     };
 
     var regex = {
       plugin: /([\w\d]+)\s\{\n((.|\s)+)\n}\n/gi, //get all plugins & their props
       plugin_settings: /([\w\d]+)\s\{\s(([\w\d]+)\s?=>\s?(.+))?}/i,
       settings_split: /(([\w\d]+)\s?=>\s?)/gi,
-      settings: /(([\w\d]+)\s?=>\s?(.+))/i
+      settings: /(([\w\d]+)\s?=>\s?(.+))/i,
+      last_word: /([\w\d]+)$/
     };
 
     var regex_consts = {
       key: '([\\w\\d]+)',
       equals: '\\s*\\=\\>\\s*',
-      value: '([^\\n]+\\n)',
+      value: '([^\\n]+\\n\\t*)',
       open_bracket: '(\\s*\\{\\s*(',
       close_bracket: ')*(\\s*\\}\\s*)?)?',
       array: '(\\[[^\\]]\\])',
@@ -89,8 +93,96 @@ angular.module('logstashAssistantApp')
     //});
 
     var methods = {
+      keyPressDown: function ($event) {
+        if (!$textArea) {
+          $textArea = angular.element(angular.element(document).find('textarea')[0])[0];
+        }
+
+        if ($event.keyCode === 9) { //tab
+          $event.preventDefault();
+
+          if (model.quick_suggestion_type !== 'props') {
+            model.quick_suggestion_index++;
+            if (model.quick_suggestion_index >= model.suggestions.length) {
+              model.quick_suggestion_index = -1;
+            }
+          }
+        } else if ($event.keyCode === 13) { //enter
+          if (model.suggestions[model.quick_suggestion_index]) {
+            $event.preventDefault();
+            var caret_pos = $textArea.selectionStart;
+            var text_up_to_caret = model.text.substring(0, caret_pos);
+
+            var last_word = regex.last_word.exec(text_up_to_caret);
+            var last_word_start = last_word.index;
+
+            var appended_text = model.suggestions[model.quick_suggestion_index];
+            var new_caret_pos = last_word_start + model.suggestions[model.quick_suggestion_index].length;
+
+            switch (model.quick_suggestion_type) {
+              case 'pipeline':
+                appended_text += " {\n\t\n}";
+                model.last_num_of_tabs = 1;
+                new_caret_pos += 4;
+                break;
+              case 'plugin':
+                appended_text += " {\n\t\t\n\t}";
+                new_caret_pos += 5;
+                model.last_num_of_tabs = 2;
+                break;
+
+              case 'setting':
+                appended_text += " => ";
+                new_caret_pos += 4;
+                model.last_num_of_tabs = 2;
+                break;
+
+              default:
+                model.last_num_of_tabs = 0;
+                break;
+            }
+
+            var new_text = model.text.substring(0, last_word_start) + appended_text + model.text.substring(caret_pos);
+            console.log(new_caret_pos);
+            model.text = new_text;
+            model.suggestions = [];
+            model.quick_suggestion_index = -1;
+
+            $timeout(function () {
+              $textArea.setSelectionRange(new_caret_pos, new_caret_pos);
+
+              if (model.quick_suggestion_type === 'setting') {
+                methods.intelliSense();
+              }
+            });
+          } else {
+            var caret_pos = $textArea.selectionStart;
+            var text_up_to_caret = model.text.substring(0, caret_pos) + "\n";
+            var text_after_caret = model.text.substring(caret_pos);
+
+            for (var i = 0; i < model.last_num_of_tabs; i++) {
+              text_up_to_caret += "\t";
+              caret_pos++;
+            }
+            caret_pos++;
+
+            model.text = text_up_to_caret + text_after_caret;
+
+            $timeout(function () {
+              $textArea.setSelectionRange(caret_pos, caret_pos);
+              methods.intelliSense();
+            });
+          }
+        }
+      },
+      keyPressUp: function ($event) {
+        if ($event.keyCode === 37 || $event.keyCode === 38 || $event.keyCode === 39 || $event.keyCode === 40) {
+          methods.intelliSense();
+        }
+      },
       intelliSense: function () {
         model.suggestions = [];
+        model.quick_suggestion_index = -1;
         var ret = [];
         var caret_match;
         var full_match;
@@ -114,15 +206,6 @@ angular.module('logstashAssistantApp')
         if (caret_match && caret_match[2]) { //pipeline
           for (var pipeline in model.list) {
             if (pipeline === caret_match[2]) {
-              //if (!full_match[3]) {
-              //  model.text += " {\n\n}";
-              //  console.log(caret_pos);
-              //  $textArea.setSelectionRange(caret_pos, caret_pos);
-              //  //$textArea.selectionEnd = caret_pos;
-              //} else if (full_match[3] && !full_match[14]) {
-              //  model.text += "\n}";
-              //}
-
               for (var plugin in model.list[pipeline]) {
                 if (caret_match[6]) {//plugin
                   if (plugin === caret_match[6]) {
@@ -137,23 +220,27 @@ angular.module('logstashAssistantApp')
                           model.suggestions.push('required: ' + conf.required);
                           model.suggestions.push('input type: ' + conf.input_type);
                           model.suggestions.push('default value: ' + conf.default_value);
+                          model.quick_suggestion_type = 'props';
                         } else if (!setting_found && setting.indexOf(caret_match[10]) !== -1) {
                           model.suggestions.push(setting);
+                          model.quick_suggestion_type = 'setting';
                         }
                       }
                     }
                   } else if (plugin.indexOf(caret_match[6]) !== -1) {
                     model.suggestions.push(plugin);
+                    model.quick_suggestion_type = 'plugin';
                   }
                 }
               }
             } else if (pipeline.indexOf(caret_match[2]) !== -1) {
               //console.log(pipeline);
               model.suggestions.push(pipeline);
+              model.quick_suggestion_type = 'pipeline';
             }
           }
         }
-        //console.log(caret_match, pipeline_regex);
+        console.log(caret_match, pipeline_regex);
       },
       validateInput: function () {
         var matches = {};

@@ -40,6 +40,9 @@
     <div class="col-sm-5 no-padding">
       <textarea data-ng-model="vm.model.text" data-ng-model-options="{debounce: 100}"
                 data-ng-change="vm.methods.intelliSense()"
+                data-ng-click="vm.methods.intelliSense()"
+                data-ng-keydown="vm.methods.keyPressDown($event)"
+                data-ng-keyup="vm.methods.keyPressUp($event)"
                 data-ng-disabled="vm.methods.isEmpty(vm.model.list)"></textarea>
 
       <!--<div class="suggestions" contenteditable data-ng-bind="vm.model.text" data-ng-change="vm.methods.intelliSense()">-->
@@ -51,7 +54,8 @@
       <h3>IntelliSense:</h3>
       <ul data-ng-show="vm.model.suggestions.length > 0" class="scrollable-content">
         <li data-ng-repeat="suggestion in vm.model.suggestions">
-          <span data-ng-bind="suggestion"></span>
+          <span data-ng-bind="suggestion"
+                data-ng-class="$index === vm.model.quick_suggestion_index ? 'active' : ''"></span>
         </li>
       </ul>
     </div>
