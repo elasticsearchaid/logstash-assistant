@@ -2,10 +2,10 @@
   <div class="row">
     <div class="col-sm-4">
       <h3>Plugins dictionary:
-        <small data-ng-show="vm.methods.isEmpty(vm.model.list)">loading...</small>
+        <small data-ng-show="vm.methods.isEmpty(vm.model.plugins_list)">loading...</small>
       </h3>
       <ul class="scrollable-content">
-        <li data-ng-repeat="(pipeline, plugins) in vm.model.list" data-ob-toggle data-no-timeout="true">
+        <li data-ng-repeat="(pipeline, plugins) in vm.model.plugins_list" data-ob-toggle data-no-timeout="true">
           <span data-ng-bind="pipeline" data-ob-toggle-button></span>
           <ul data-ob-hidden-section>
             <li data-ng-repeat="(plugin, settings) in plugins" data-ob-toggle data-no-timeout="true">
@@ -38,27 +38,35 @@
       </ul>
     </div>
     <div class="col-sm-5 no-padding">
-      <textarea data-ng-model="vm.model.text" data-ng-model-options="{debounce: 100}"
+      <div class="smart-suggestions" data-ng-show="vm.model.suggestions.length > 0">
+        <ul>
+          <li data-ng-repeat="suggestion in vm.model.suggestions"
+              data-ng-class="{'active' : $index === vm.model.quick_suggestion_index, 'required' : vm.methods.isSettingRequired(suggestion)}">
+            <span data-ng-bind="suggestion"></span>
+          </li>
+        </ul>
+      </div>
+      <textarea data-ng-model="vm.model.input" data-ng-model-options="{debounce: 100}"
                 data-ng-change="vm.methods.intelliSense()"
                 data-ng-click="vm.methods.intelliSense()"
                 data-ng-keydown="vm.methods.keyPressDown($event)"
                 data-ng-keyup="vm.methods.keyPressUp($event)"
-                data-ng-disabled="vm.methods.isEmpty(vm.model.list)"></textarea>
+                data-ng-disabled="vm.methods.isEmpty(vm.model.plugins_list)"></textarea>
 
       <!--<div class="suggestions" contenteditable data-ng-bind="vm.model.text" data-ng-change="vm.methods.intelliSense()">-->
       <!--<span class="preText" data-ng-bind="vm.model.text"></span>-->
       <!--</div>-->
 
     </div>
-    <div class="col-sm-3">
-      <h3>IntelliSense:</h3>
-      <ul data-ng-show="vm.model.suggestions.length > 0" class="scrollable-content">
-        <li data-ng-repeat="suggestion in vm.model.suggestions">
-          <span data-ng-bind="suggestion"
-                data-ng-class="$index === vm.model.quick_suggestion_index ? 'active' : ''"></span>
-        </li>
-      </ul>
-    </div>
+    <!--<div class="col-sm-3">-->
+    <!--<h3>IntelliSense:</h3>-->
+    <!--<ul data-ng-show="vm.model.suggestions.length > 0" class="scrollable-content">-->
+    <!--<li data-ng-repeat="suggestion in vm.model.suggestions">-->
+    <!--<span data-ng-bind="suggestion"-->
+    <!--data-ng-class="{'active' : $index === vm.model.quick_suggestion_index, 'required' : vm.methods.isSettingRequired(suggestion)}"></span>-->
+    <!--</li>-->
+    <!--</ul>-->
+    <!--</div>-->
   </div>
 </div>
 
@@ -70,15 +78,15 @@
     <ul>
       <li data-ng-repeat="(pipeline, plugins) in vm.model.matches">
             <span data-ng-bind="pipeline"
-                  data-ng-class="vm.model.list[pipeline] ? 'valid-input' : 'invalid-input'"></span>
+                  data-ng-class="vm.model.plugins_list[pipeline] ? 'valid-input' : 'invalid-input'"></span>
         <ul>
           <li data-ng-repeat="(plugin, settings) in plugins">
             <span data-ng-bind="plugin"
-                  data-ng-class="vm.model.list[pipeline] && vm.model.list[pipeline][plugin]? 'valid-input' : 'invalid-input'"></span>
+                  data-ng-class="vm.model.plugins_list[pipeline] && vm.model.plugins_list[pipeline][plugin]? 'valid-input' : 'invalid-input'"></span>
             <ul>
               <li data-ng-repeat="(setting, val) in settings">
                 <span data-ng-bind="setting"
-                      data-ng-class="vm.model.list[pipeline] && vm.model.list[pipeline][plugin] && vm.model.list[pipeline][plugin][setting]? 'valid-input' : 'invalid-input'"></span>
+                      data-ng-class="vm.model.plugins_list[pipeline] && vm.model.plugins_list[pipeline][plugin] && vm.model.plugins_list[pipeline][plugin][setting]? 'valid-input' : 'invalid-input'"></span>
                 =>
                 <span data-ng-bind="val"></span>
               </li>
