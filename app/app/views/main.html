@@ -41,7 +41,10 @@
       <div class="smart-suggestions" data-ng-show="vm.model.suggestions.length > 0">
         <ul>
           <li data-ng-repeat="suggestion in vm.model.suggestions"
-              data-ng-class="{'active' : $index === vm.model.quick_suggestion_index, 'required' : vm.methods.isSettingRequired(suggestion)}">
+              data-ng-mouseover="vm.methods.markOnHover($index)"
+              data-ng-mouseleave="vm.methods.deselectOnLeave()"
+              data-ng-click="vm.methods.selectSuggestion()"
+              data-ng-class="{'active-selection' : $index === vm.model.quick_suggestion_index, 'required' : vm.methods.isSettingRequired(suggestion)}">
             <span data-ng-bind="suggestion"></span>
           </li>
         </ul>
@@ -51,22 +54,8 @@
                 data-ng-click="vm.methods.intelliSense()"
                 data-ng-keydown="vm.methods.keyPressDown($event)"
                 data-ng-keyup="vm.methods.keyPressUp($event)"
-                data-ng-disabled="vm.methods.isEmpty(vm.model.plugins_list)"></textarea>
-
-      <!--<div class="suggestions" contenteditable data-ng-bind="vm.model.text" data-ng-change="vm.methods.intelliSense()">-->
-      <!--<span class="preText" data-ng-bind="vm.model.text"></span>-->
-      <!--</div>-->
-
+                data-ng-disabled="vm.methods.isEmpty(vm.model.plugins_list)" id="editor" ob-textarea></textarea>
     </div>
-    <!--<div class="col-sm-3">-->
-    <!--<h3>IntelliSense:</h3>-->
-    <!--<ul data-ng-show="vm.model.suggestions.length > 0" class="scrollable-content">-->
-    <!--<li data-ng-repeat="suggestion in vm.model.suggestions">-->
-    <!--<span data-ng-bind="suggestion"-->
-    <!--data-ng-class="{'active' : $index === vm.model.quick_suggestion_index, 'required' : vm.methods.isSettingRequired(suggestion)}"></span>-->
-    <!--</li>-->
-    <!--</ul>-->
-    <!--</div>-->
   </div>
 </div>
 

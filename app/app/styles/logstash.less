@@ -1,0 +1,80 @@
+@import "_obScrollbar";
+
+textarea#editor {
+  font-size: 16px !important;
+  line-height: 20px !important;
+  border-width: 0 !important;
+  padding: 5px !important;
+
+  width: 100%;
+  max-width: 100%;
+  height: 800px;
+  resize: none;
+  overflow-x: auto;
+  overflow-y: scroll;
+  white-space: nowrap;
+  .scrollbar();
+}
+
+pre.hidden-span {
+  //font-size: 16px !important;
+  position: absolute;
+  display: inline-block;
+  padding: 0 !important;
+  margin: 0 !important;
+  visibility: hidden;
+}
+
+ul.scrollable-content {
+  height: 630px;
+  overflow: auto;
+  .scrollbar();
+}
+
+div {
+  &.smart-suggestions {
+    .scrollbar();
+    cursor: default;
+    position: absolute;
+    min-width: 200px;
+    max-width: 250px;
+    max-height: 300px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border: 1px solid #a6a6a6;
+    background-color: white;
+    box-shadow: 2px 2px 5px 0 #6a6a6a;
+
+    ul {
+      margin: 0;
+      padding: 0;
+      display: block;
+
+      li {
+        border-bottom: 1px solid #a6a6a6;
+        display: block;
+
+        &.required {
+          &:before {
+            content: "*";
+            color: red;
+          }
+          font-weight: bold;
+        }
+
+        &.active-selection {
+          background-color: rgba(66, 129, 244, 1);
+          color: white;
+        }
+      }
+    }
+  }
+}
+
+.valid-input {
+  background-color: rgba(103, 177, 104, 0.54);
+}
+
+.invalid-input {
+  background-color: rgba(243, 0, 0, 0.44);
+}

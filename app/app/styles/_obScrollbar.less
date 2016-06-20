@@ -1,0 +1,31 @@
+.scrollbar(@foreground: grey, @background: lightgrey, @width: 10px) {
+  &::-webkit-scrollbar {
+    width: @width;
+    height: @width;
+  }
+  &::-webkit-scrollbar-button {
+  }
+  &::-webkit-scrollbar-track {
+
+    background-color: @background;
+  }
+  &::-webkit-scrollbar-track-piece {
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: @foreground;
+  }
+  &::-webkit-scrollbar-corner {
+
+  }
+  &::-webkit-resizer {
+
+  }
+
+  //scrollbar-face-color: #000000;
+  //scrollbar-shadow-color: #2D2C4D;
+  //scrollbar-highlight-color:#7D7E94;
+  //scrollbar-3dlight-color: #7D7E94;
+  //scrollbar-darkshadow-color: #2D2C4D;
+  //scrollbar-track-color: #7D7E94;
+  //scrollbar-arrow-color: #C1C1D1;
+}

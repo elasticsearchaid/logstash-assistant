@@ -115,9 +115,10 @@
                         model.last_num_of_tabs = 2;
                         if (plugin_open_bracket) {
                           for (var setting in model.plugins_list[pipeline][plugin]) {
+                            var conf = model.plugins_list[pipeline][plugin][setting];
                             if (caret_match[10] && !caret_match[14]) { //setting
+
                               if (setting === caret_match[10] && caret_match[12] && !caret_match[14]) {
-                                var conf = model.plugins_list[pipeline][plugin][setting];
                                 model.suggestions = [];
                                 model.suggestions.push('required: ' + conf.required);
                                 model.suggestions.push('input type: ' + conf.input_type);
@@ -125,12 +126,22 @@
                                 model.quick_suggestion_type = 'props';
                                 break;
                               } else if ((setting.indexOf(caret_match[10]) !== -1 && !caret_match[12]) || caret_match[14]) {
-                                //} else if (!setting_found && setting.indexOf(caret_match[10]) !== -1) {
-                                model.suggestions.push(setting);
+                                if (conf.required) {
+                                  model.suggestions.unshift(setting);
+                                } else {
+                                  model.suggestions.push(setting);
+                                }
+
                                 model.quick_suggestion_type = 'setting';
                               }
                             } else if (!caret_match[10] || caret_match[14]) {
-                              model.suggestions.push(setting);
+
+                              if (conf.required) {
+                                model.suggestions.unshift(setting);
+                              } else {
+                                model.suggestions.push(setting);
+                              }
+
                               model.quick_suggestion_type = 'setting';
                             }
                           }

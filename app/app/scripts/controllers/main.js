@@ -8,7 +8,7 @@
  * Controller of the logstashAssistantApp
  */
 angular.module('logstashAssistantApp')
-  .controller('MainCtrl', ['obLogstashEditor', '$timeout', function (obLogstashEditor, $timeout) {
+  .controller('MainCtrl', ['obLogstashEditor', '$timeout', '$scope', function (obLogstashEditor, $timeout, $scope) {
     var self = this;
     var $textArea, $smartSuggestions;
 
@@ -24,20 +24,105 @@ angular.module('logstashAssistantApp')
       current_plugin: ''
     };
 
-    var smartSuggestions = {
-      left: 0,
-      top: 0
-    };
-
     var regex = {
       last_word: /([\w\d]+)[ \t]*$/
     };
 
     var methods = {
+      markOnHover: function ($index) {
+        if (model.quick_suggestion_type !== 'props') {
+          model.quick_suggestion_index = $index;
+        }
+      },
+      deselectOnLeave: function () {
+        model.quick_suggestion_index = -1;
+      },
+      selectSuggestion: function () {
+        var caret_pos = $textArea[0].selectionStart;
+        var text_up_to_caret = model.input.substring(0, caret_pos);
+        var text_after_caret = model.input.substring(caret_pos);
+        var appended_text = "";
+
+        if (model.quick_suggestion_type.indexOf('brackets') !== -1) {
+          switch (model.quick_suggestion_type) {
+            case 'pipeline_brackets':
+              appended_text += " {\n\t\n}";
+              caret_pos += 4;
+              break;
+
+            case 'plugin_brackets':
+              appended_text += " {\n\t\t\n\t}";
+              caret_pos += 5;
+              break;
+
+            default:
+              break;
+          }
+
+          model.input = text_up_to_caret + appended_text + text_after_caret;
+
+          $timeout(function () {
+            $textArea[0].setSelectionRange(caret_pos, caret_pos);
+            methods.intelliSense();
+            $textArea[0].focus();
+          });
+        } else if (model.suggestions[model.quick_suggestion_index]) {
+          var last_word = regex.last_word.exec(text_up_to_caret);
+          var last_word_start;
+
+          if (last_word) {
+            last_word_start = last_word.index;
+          } else {
+            last_word_start = caret_pos;
+          }
+
+          var new_caret_pos = last_word_start + model.suggestions[model.quick_suggestion_index].length;
+
+          if (text_up_to_caret.charAt(last_word_start - 1) === '}') {
+            appended_text += "\n";
+            new_caret_pos++;
+
+            (function () {
+              for (var i = 0; i < model.last_num_of_tabs; i++) {
+                appended_text += "\t";
+                new_caret_pos++;
+              }
+            })();
+          }
+
+          appended_text += model.suggestions[model.quick_suggestion_index];
+
+          switch (model.quick_suggestion_type) {
+            case 'pipeline':
+              appended_text += " {\n\t\n}";
+              new_caret_pos += 4;
+              break;
+
+            case 'plugin':
+              appended_text += " {\n\t\t\n\t}";
+              new_caret_pos += 5;
+              break;
+
+            case 'setting':
+              appended_text += " => ";
+              new_caret_pos += 4;
+              break;
+          }
+
+          var new_text = model.input.substring(0, last_word_start) + appended_text + text_after_caret;
+          model.input = new_text;
+          model.suggestions = [];
+          model.quick_suggestion_index = -1;
+
+          $timeout(function () {
+            $textArea[0].setSelectionRange(new_caret_pos, new_caret_pos);
+            methods.intelliSense();
+          });
+        }
+      },
       keyPressDown: function ($event) {
         initTextarea();
 
-        //console.log($event);
         if ($event.keyCode === 27) { //esc
           model.quick_suggestion_index = -1;
         } else if ($event.keyCode === 9) { //tab
@@ -59,106 +144,14 @@ angular.module('logstashAssistantApp')
         } else if ($event.keyCode === 13) { //enter
           $event.preventDefault();
 
-          var caret_pos = $textArea.selectionStart;
+          var caret_pos = $textArea[0].selectionStart;
           var text_up_to_caret = model.input.substring(0, caret_pos);
           var text_after_caret = model.input.substring(caret_pos);
-          var appended_text = "";
 
-          if (model.quick_suggestion_type.indexOf('brackets') !== -1) {
-            switch (model.quick_suggestion_type) {
-              case 'pipeline_brackets':
-                appended_text += " {\n\t\n}";
-                caret_pos += 4;
-                break;
-
-              case 'plugin_brackets':
-                appended_text += " {\n\t\t\n\t}";
-                caret_pos += 5;
-                //model.last_num_of_tabs = 2;
-                break;
-
-              default:
-                //model.last_num_of_tabs = 0;
-                break;
-            }
-
-            model.input = text_up_to_caret + appended_text + text_after_caret;
-
-            $timeout(function () {
-              $textArea.setSelectionRange(caret_pos, caret_pos);
-              methods.intelliSense();
-            });
-          } else if (model.suggestions[model.quick_suggestion_index]) {
-            //$event.preventDefault();
-            var last_word = regex.last_word.exec(text_up_to_caret);
-            var last_word_start;
-
-            if (last_word) {
-              last_word_start = last_word.index;
-            } else {
-              last_word_start = caret_pos;
-            }
-
-            var new_caret_pos = last_word_start + model.suggestions[model.quick_suggestion_index].length;
-
-            if (text_up_to_caret.charAt(last_word_start - 1) === '}') {
-              appended_text += "\n";
-              new_caret_pos++;
-
-              (function () {
-                for (var i = 0; i < model.last_num_of_tabs; i++) {
-                  appended_text += "\t";
-                  new_caret_pos++;
-                }
-              })();
-            }
-
-            //if (model.quick_suggestion_type !== 'pipeline_brackets') {
-            appended_text += model.suggestions[model.quick_suggestion_index];
-            //}
-
-            switch (model.quick_suggestion_type) {
-              case 'pipeline':
-                appended_text += " {\n\t\n}";
-                //model.last_num_of_tabs = 1;
-                new_caret_pos += 4;
-                break;
-
-              //case 'pipeline_brackets':
-              //  appended_text += " => ";
-              //  new_caret_pos += 4;
-              //  //model.last_num_of_tabs = 2;
-              //  break;
-
-              case 'plugin':
-                appended_text += " {\n\t\t\n\t}";
-                new_caret_pos += 5;
-                //model.last_num_of_tabs = 2;
-                break;
-
-              case 'setting':
-                appended_text += " => ";
-                new_caret_pos += 4;
-                //model.last_num_of_tabs = 2;
-                break;
-
-              default:
-                //model.last_num_of_tabs = 0;
-                break;
-            }
-
-            var new_text = model.input.substring(0, last_word_start) + appended_text + text_after_caret;
-            model.input = new_text;
-            model.suggestions = [];
-            model.quick_suggestion_index = -1;
-
-            $timeout(function () {
-              $textArea.setSelectionRange(new_caret_pos, new_caret_pos);
-              methods.intelliSense();
-            });
+          if (model.suggestions[model.quick_suggestion_index] || model.quick_suggestion_type.indexOf('brackets') !== -1) {
+            methods.selectSuggestion();
           } else {
             text_up_to_caret += "\n";
-            //text_after_caret = model.input.substring(caret_pos);
 
             for (var i = 0; i < model.last_num_of_tabs; i++) {
               text_up_to_caret += "\t";
@@ -169,7 +162,8 @@ angular.module('logstashAssistantApp')
             model.input = text_up_to_caret + text_after_caret;
 
             $timeout(function () {
-              $textArea.setSelectionRange(caret_pos, caret_pos);
+              $textArea[0].setSelectionRange(caret_pos, caret_pos);
+
               methods.intelliSense();
             });
           }
@@ -184,15 +178,12 @@ angular.module('logstashAssistantApp')
       intelliSense: function () {
         initTextarea();
 
-        obLogstashEditor.intelliSense(model.input, $textArea.selectionStart);
+        obLogstashEditor.intelliSense(model.input, $textArea[0].selectionStart);
 
-        //$smartSuggestions.
-        $timeout(function () {
-          smartSuggestions = getCaretCoordinates($textArea, $textArea.selectionEnd);
-          $smartSuggestions.css('top', smartSuggestions.top + 20 + 'px');
-          $smartSuggestions.css('left', smartSuggestions.left + 'px');
+        $scope.$on('obTextarea:caretChange', function (event, data) {
+          $smartSuggestions.css('top', data.caret.y + 'px');
+          $smartSuggestions.css('left', data.caret.x + 'px');
         });
-
       },
       validateInput: function () {
         obLogstashEditor.validateInput();
@@ -213,7 +204,7 @@ angular.module('logstashAssistantApp')
 
     function initTextarea() {
       if (!$textArea) {
-        $textArea = angular.element(angular.element(document).find('textarea')[0])[0];
+        $textArea = angular.element(angular.element(document).find('#editor')[0]);
       }
 
       if (!$smartSuggestions) {
@@ -225,7 +216,6 @@ angular.module('logstashAssistantApp')
       obLogstashEditor.init().then(function () {
         model = obLogstashEditor.getLogstashModel();
         self.model = model;
-        self.smartSuggestions = smartSuggestions;
         //console.log(model);
       }, function (err) {
 
