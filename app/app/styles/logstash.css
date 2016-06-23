@@ -21,6 +21,16 @@ textarea#editor::-webkit-scrollbar-track {
 textarea#editor::-webkit-scrollbar-thumb {
   background-color: grey;
 }
+div.how-to {
+  text-align: left;
+}
+div.how-to div > span {
+  font-size: 14px;
+  text-align: left;
+}
+div.how-to button span {
+  color: black !important;
+}
 ul.scrollable-content {
   height: 630px;
   overflow: auto;
