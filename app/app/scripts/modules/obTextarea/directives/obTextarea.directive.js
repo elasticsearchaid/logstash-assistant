@@ -1,23 +1,28 @@
 /**
  * Created by bennun on 20/06/2016.
+ * obTextarea is a directive that emits the caret's pixel position
+ * on every model-change/click/keypress with the event
+ * 'obTextarea:caretChange'
  */
+
 (function () {
   'use strict';
 
   var obTextarea = angular.module('obTextareaModule');
 
   obTextarea
-    .directive('obTextarea', ['$timeout', '$parse', function ($timeout, $parse) {
+    .directive('obTextarea', ['$timeout', function ($timeout) {
       return {
-        restrict: 'AE',
+        restrict: 'A',
         scope: {
-          ngModel: '='
+          ngModel: '=',
+          obTextarea: '='
         },
         compile: function (tElem, tAttrs) {
-          var textarea;
+          var textarea_styles;
           var last_caret_position = {};
           var regex_current_line = /.*?\n?(.*)$/;
-          var temp_elem = $('<pre>');
+          var temp_elem = $('<pre>'); //dummy element
 
           function getNumValue(pixel_value) {
             return parseFloat(pixel_value.replace('px', ''));
@@ -43,12 +48,17 @@
             return ret;
           }
 
+          function getTextUpToCaret($textarea) {
+            return $textarea.val().substring(0, $textarea[0].selectionStart);
+          }
+
           function calculateCaretX($textarea) {
-            var text_to_caret = $textarea.val().substring(0, $textarea[0].selectionStart);
-            var text_in_line = regex_current_line.exec(text_to_caret)[1];
+            var text_to_caret = getTextUpToCaret($textarea);
+            var text_in_line = regex_current_line.exec(text_to_caret)[1]; //get last line
 
-            temp_elem.text(text_in_line);
+            temp_elem.text(text_in_line); //inject text in last line to dummy-element
 
+            //add & remove dummy-element to body in-order to calculate it's position
             document.body.appendChild(temp_elem[0]);
             var caret_x = temp_elem[0].clientWidth;
             document.body.removeChild(temp_elem[0]);
@@ -57,25 +67,36 @@
           }
 
           function calculateCaretY($textarea) {
-            var text_to_caret = $textarea.val().substring(0, $textarea[0].selectionStart);
-            var line_num = text_to_caret.split('\n').length;
-            var caret_y = line_num * textarea.lineHieght;
+            var text_to_caret = getTextUpToCaret($textarea);
+            var line_num = text_to_caret.split('\n').length; //count number of lines
+            var caret_y = line_num * textarea_styles.lineHieght;
 
             return caret_y;
           }
 
-          function calculateCaretPosition($textarea) {
+          function calculateCaretPosition($textarea, direction) {
             var caret_pos = {
-              x: calculateCaretX($textarea) + textarea.paddingLeft + textarea.borderLeft - $textarea[0].scrollLeft,
-              y: calculateCaretY($textarea) + textarea.paddingTop + textarea.borderTop - $textarea[0].scrollTop
+              x: calculateCaretX($textarea),
+              y: calculateCaretY($textarea) + textarea_styles.paddingTop + textarea_styles.borderTop - $textarea[0].scrollTop
             };
+
+            switch (direction) {
+              case 'rtl':
+                caret_pos.x += (textarea_styles.paddingRight + textarea_styles.borderRight - $textarea[0].scrollLeft);
+                break;
+
+              case 'ltr':
+              default:
+                caret_pos.x += (textarea_styles.paddingLeft + textarea_styles.borderLeft - $textarea[0].scrollLeft);
+                break;
+            }
 
             return caret_pos;
           }
 
           function emitChanges(scope, $textarea) {
             $timeout(function () {
-              var current_caret_position = calculateCaretPosition($textarea);
+              var current_caret_position = calculateCaretPosition($textarea, scope.obTextarea);
               if (last_caret_position.x !== current_caret_position.x || last_caret_position.y !== current_caret_position.y) {
                 last_caret_position = current_caret_position;
                 scope.$emit('obTextarea:caretChange', {caret: current_caret_position});
@@ -86,11 +107,15 @@
           return {
             pre: function (scope, iElem, iAttrs) {
               function init() {
-                textarea = getTextAreaStyle(iElem);
-
-                temp_elem.addClass('hidden-span');
-                temp_elem.css('font-size', textarea.fontSize + 'px');
-                temp_elem.css('font-family', textarea.fontFamily);
+                textarea_styles = getTextAreaStyle(iElem);
+                console.log(iElem);
+                temp_elem.css('font-size', textarea_styles.fontSize + 'px');
+                temp_elem.css('font-family', textarea_styles.fontFamily);
+                temp_elem.css('position', 'absolute');
+                temp_elem.css('display', 'inline-block');
+                temp_elem.css('padding', '0');
+                temp_elem.css('margin', '0');
+                temp_elem.css('visibility', 'hidden');
               }
 
               init();
@@ -101,7 +126,6 @@
               });
 
               iElem.on('keyup click focus', function (event) {
-                console.log(event);
                 emitChanges(scope, iElem);
               });
 

@@ -16,13 +16,14 @@
         quick_suggestion_type: '',
         last_num_of_tabs: 0,
         current_pipeline: '',
-        current_plugin: ''
+        current_plugin: '',
+        scope_level: 0
       };
 
       var regex_consts = {
         key: '\\s*([\\w\\d]+)',
         equals: '[ \\t]*(\\=\\>)[ \\t]*',
-        value: '([^\\n]+)\\n',
+        value: '([^\\n\\{\\}]+|\\{[^\\}]+\\})\\n',
         open_bracket: '(\\s*\\{\\s*(',
         close_bracket: ')*(\\s*\\}\\s*)?)?',
         array: '(\\[[^\\]]\\])',
@@ -76,16 +77,20 @@
       var input_regex = Regex.none_or_many(Regex.pipeline(Regex.none_or_many(Regex.plugin(Regex.none_or_many(Regex.setting())))));
       var pipeline_regex = new RegExp(input_regex);
 
+      console.log(pipeline_regex);
       var methods = {
         intelliSense: function (input, caret_pos) {
           var caret_match;
           var full_match;
+          var text_up_to_caret = model.input.substring(0, caret_pos);
 
           model.suggestions = [];
           model.quick_suggestion_index = -1;
           model.input = input;
+          model.scope_level = countOpenBrackets(text_up_to_caret) - countCloseBrackets(text_up_to_caret);
+          console.log(model.scope_level);
 
-          caret_match = pipeline_regex.exec(model.input.substring(0, caret_pos));
+          caret_match = pipeline_regex.exec(text_up_to_caret);
           //full_match = pipeline_regex.exec(model.input);
 
           var pipeline_match = caret_match[2];
@@ -98,21 +103,20 @@
 
           var setting_match = caret_match[9];
 
-          //console.log(pipeline_match, plugin_match, setting_match);
           //console.log(caret_match);
           model.current_pipeline = pipeline_match;
           model.current_plugin = plugin_match;
 
           if (caret_match) { //pipeline
-            model.last_num_of_tabs = 0;
+            //model.last_num_of_tabs = 0;
             for (var pipeline in model.plugins_list) {
               if (pipeline === pipeline_match && !pipeline_close_bracket) {
-                model.last_num_of_tabs = 1;
+                //model.last_num_of_tabs = 1;
                 if (pipeline_open_bracket) {
                   for (var plugin in model.plugins_list[pipeline]) {
                     if (plugin_match) {//plugin
                       if (plugin === plugin_match && !plugin_close_bracket) {
-                        model.last_num_of_tabs = 2;
+                        //model.last_num_of_tabs = 2;
                         if (plugin_open_bracket) {
                           for (var setting in model.plugins_list[pipeline][plugin]) {
                             var conf = model.plugins_list[pipeline][plugin][setting];

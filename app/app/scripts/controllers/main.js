@@ -21,12 +21,35 @@ angular.module('logstashAssistantApp')
       quick_suggestion_type: '',
       last_num_of_tabs: 0,
       current_pipeline: '',
-      current_plugin: ''
+      current_plugin: '',
+      scope_level: 0
     };
 
     var regex = {
       last_word: /([\w\d]+)[ \t]*$/
     };
+
+    function padWithTabs(numOfTabs) {
+      var ret = "";
+
+      for (var i = 0; i < numOfTabs; i++) {
+        ret += "\t";
+      }
+
+      return ret;
+    }
+
+    function createScopeWithTabs(numOfTabs) {
+      var ret = " {\n";
+
+      ret += padWithTabs(numOfTabs);
+      ret += "\n";
+      ret += padWithTabs(numOfTabs - 1);
+
+      ret += "}";
+
+      return ret;
+    }
 
     var methods = {
       markOnHover: function ($index) {
@@ -46,13 +69,9 @@ angular.module('logstashAssistantApp')
         if (model.quick_suggestion_type.indexOf('brackets') !== -1) {
           switch (model.quick_suggestion_type) {
             case 'pipeline_brackets':
-              appended_text += " {\n\t\n}";
-              caret_pos += 4;
-              break;
-
             case 'plugin_brackets':
-              appended_text += " {\n\t\t\n\t}";
-              caret_pos += 5;
+              appended_text += createScopeWithTabs(model.scope_level + 1);
+              caret_pos += 3 + model.scope_level;
               break;
 
             default:
@@ -80,28 +99,26 @@ angular.module('logstashAssistantApp')
 
           if (text_up_to_caret.charAt(last_word_start - 1) === '}') {
             appended_text += "\n";
-            new_caret_pos++;
 
-            (function () {
-              for (var i = 0; i < model.last_num_of_tabs; i++) {
-                appended_text += "\t";
-                new_caret_pos++;
-              }
-            })();
+            for (var i = 0; i < model.scope_level; i++) {
+              appended_text += "\t";
+            }
+            new_caret_pos += model.scope_level + 1;
           }
 
           appended_text += model.suggestions[model.quick_suggestion_index];
 
           switch (model.quick_suggestion_type) {
             case 'pipeline':
-              appended_text += " {\n\t\n}";
-              new_caret_pos += 4;
+            case 'plugin':
+              appended_text += createScopeWithTabs(model.scope_level + 1);
+              new_caret_pos += 4 + model.scope_level;
               break;
 
-            case 'plugin':
-              appended_text += " {\n\t\t\n\t}";
-              new_caret_pos += 5;
-              break;
+            //case 'plugin':
+            //  appended_text += " {\n\t\t\n\t}";
+            //  new_caret_pos += 5;
+            //  break;
 
             case 'setting':
               appended_text += " => ";
@@ -152,13 +169,18 @@ angular.module('logstashAssistantApp')
           if (model.suggestions[model.quick_suggestion_index] || model.quick_suggestion_type.indexOf('brackets') !== -1) {
             methods.selectSuggestion();
           } else {
-            text_up_to_caret += "\n";
+            var num_of_tabs = model.scope_level;
 
-            for (var i = 0; i < model.last_num_of_tabs; i++) {
-              text_up_to_caret += "\t";
-              caret_pos++;
+            if (text_after_caret.replace(/\t/, '').charAt(0) === '}') {
+              num_of_tabs--;
+              //text_up_to_caret += padWithTabs(num_of_tabs);
+              //caret_pos += num_of_tabs;
             }
-            caret_pos++;
+
+            text_up_to_caret += "\n";
+            text_up_to_caret += padWithTabs(num_of_tabs);
+
+            caret_pos += num_of_tabs + 1;
 
             model.input = text_up_to_caret + text_after_caret;
 
@@ -213,8 +235,8 @@ angular.module('logstashAssistantApp')
         model = obLogstashEditor.getLogstashModel();
         self.model = model;
 
+        //get caret updates from obTextarea directive
         $scope.$on('obTextarea:caretChange', function (event, data) {
-          console.log(data.caret);
           methods.intelliSense();
           $smartSuggestions.css('top', data.caret.y + 'px');
           $smartSuggestions.css('left', data.caret.x + 'px');

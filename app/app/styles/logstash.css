@@ -21,13 +21,6 @@ textarea#editor::-webkit-scrollbar-track {
 textarea#editor::-webkit-scrollbar-thumb {
   background-color: grey;
 }
-pre.hidden-span {
-  position: absolute;
-  display: inline-block;
-  padding: 0 !important;
-  margin: 0 !important;
-  visibility: hidden;
-}
 ul.scrollable-content {
   height: 630px;
   overflow: auto;
