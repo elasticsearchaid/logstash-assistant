@@ -49,16 +49,17 @@
           </li>
         </ul>
       </div>
-      <textarea data-ng-model="vm.model.input" data-ng-model-options="{debounce: 100}"
+      <textarea data-ng-model="vm.model.input"
+                data-ng-model-options="{debounce: 100}"
                 data-ng-change="vm.methods.intelliSense()"
                 data-ng-click="vm.methods.intelliSense()"
                 data-ng-keydown="vm.methods.keyPressDown($event)"
                 data-ng-keyup="vm.methods.keyPressUp($event)"
-                data-ng-disabled="vm.methods.isEmpty(vm.model.plugins_list)" id="editor" ob-textarea></textarea>
+                data-ng-disabled="vm.methods.isEmpty(vm.model.plugins_list)"
+                id="editor" ob-textarea></textarea>
     </div>
   </div>
 </div>
-
 <div class="row">
   <div class="col-sm-12">
     <button class="btn btn-success" data-ng-click="vm.methods.validateInput()">Validate</button>

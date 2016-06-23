@@ -125,6 +125,7 @@ angular.module('logstashAssistantApp')
 
         if ($event.keyCode === 27) { //esc
           model.quick_suggestion_index = -1;
+          model.suggestions = [];
         } else if ($event.keyCode === 9) { //tab
           $event.preventDefault();
 
@@ -179,11 +180,6 @@ angular.module('logstashAssistantApp')
         initTextarea();
 
         obLogstashEditor.intelliSense(model.input, $textArea[0].selectionStart);
-
-        $scope.$on('obTextarea:caretChange', function (event, data) {
-          $smartSuggestions.css('top', data.caret.y + 'px');
-          $smartSuggestions.css('left', data.caret.x + 'px');
-        });
       },
       validateInput: function () {
         obLogstashEditor.validateInput();
@@ -216,6 +212,13 @@ angular.module('logstashAssistantApp')
       obLogstashEditor.init().then(function () {
         model = obLogstashEditor.getLogstashModel();
         self.model = model;
+
+        $scope.$on('obTextarea:caretChange', function (event, data) {
+          console.log(data.caret);
+          methods.intelliSense();
+          $smartSuggestions.css('top', data.caret.y + 'px');
+          $smartSuggestions.css('left', data.caret.x + 'px');
+        });
         //console.log(model);
       }, function (err) {
 

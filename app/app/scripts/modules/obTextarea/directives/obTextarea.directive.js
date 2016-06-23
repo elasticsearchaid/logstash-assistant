@@ -11,14 +11,12 @@
       return {
         restrict: 'AE',
         scope: {
-          obSuggestions: '@',
-          obSelectedIndex: '=',
-          obCaretPosition: '=',
           ngModel: '='
         },
         compile: function (tElem, tAttrs) {
           var textarea;
-          var regex_line = /.*?\n?(.*)$/;
+          var last_caret_position = {};
+          var regex_current_line = /.*?\n?(.*)$/;
           var temp_elem = $('<pre>');
 
           function getNumValue(pixel_value) {
@@ -47,7 +45,7 @@
 
           function calculateCaretX($textarea) {
             var text_to_caret = $textarea.val().substring(0, $textarea[0].selectionStart);
-            var text_in_line = regex_line.exec(text_to_caret)[1];
+            var text_in_line = regex_current_line.exec(text_to_caret)[1];
 
             temp_elem.text(text_in_line);
 
@@ -67,21 +65,21 @@
           }
 
           function calculateCaretPosition($textarea) {
-            //add container styles
-
             var caret_pos = {
               x: calculateCaretX($textarea) + textarea.paddingLeft + textarea.borderLeft - $textarea[0].scrollLeft,
               y: calculateCaretY($textarea) + textarea.paddingTop + textarea.borderTop - $textarea[0].scrollTop
             };
-
-            console.log(caret_pos);
 
             return caret_pos;
           }
 
           function emitChanges(scope, $textarea) {
             $timeout(function () {
-              scope.$emit('obTextarea:caretChange', {caret: calculateCaretPosition($textarea)});
+              var current_caret_position = calculateCaretPosition($textarea);
+              if (last_caret_position.x !== current_caret_position.x || last_caret_position.y !== current_caret_position.y) {
+                last_caret_position = current_caret_position;
+                scope.$emit('obTextarea:caretChange', {caret: current_caret_position});
+              }
             });
           }
 
@@ -93,8 +91,6 @@
                 temp_elem.addClass('hidden-span');
                 temp_elem.css('font-size', textarea.fontSize + 'px');
                 temp_elem.css('font-family', textarea.fontFamily);
-
-                //emitChanges(scope, iElem);
               }
 
               init();
@@ -104,7 +100,8 @@
                 emitChanges(scope, iElem);
               });
 
-              iElem.on('keypress keyup keydown click focus', function () {
+              iElem.on('keyup click focus', function (event) {
+                console.log(event);
                 emitChanges(scope, iElem);
               });
 
